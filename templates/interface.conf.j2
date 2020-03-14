@@ -1,0 +1,11 @@
+[Interface]
+Address = {{ wireguard_server_ip }}/{{ wireguard_net_mask }}
+PrivateKey = {{ server_private_key.content | b64decode | trim }}
+ListenPort = {{ wireguard_port }}
+
+{% for item in client_public_keys.results %}
+### {{ item.item.user_name }} ###
+[Peer]
+PublicKey = {{ item.content | b64decode | trim }}
+AllowedIPs = {{ item.item.ip }}/32
+{% endfor %}

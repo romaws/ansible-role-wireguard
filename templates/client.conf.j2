@@ -1,0 +1,12 @@
+[Interface]
+Address = {{ item.item.ip }}/{{ wireguard_net_mask }}
+PrivateKey = {{ item.content | b64decode | trim }}
+{% if wireguard_dns_server  %}
+DNS = {{ wireguard_dns_server }}
+{% endif %}
+### {{ item.item.user_name }} ###
+[Peer]
+PublicKey = {{ server_public_key.content | b64decode | trim }}
+AllowedIPs = {{ wireguard_net_ip }}/{{ wireguard_net_mask }}, {{ wireguard_external_net }}
+Endpoint = {{ wireguard_pub_address }}:{{ wireguard_port }}
+PersistentKeepalive = 25

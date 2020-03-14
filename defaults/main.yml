@@ -1,0 +1,23 @@
+---
+wireguard_path: /etc/wireguard
+wireguard_clients_path: /etc/wireguard/clients
+
+wireguard_net_ip: "10.8.0.0"
+wireguard_net_mask: "24"
+wireguard_server_ip: "10.8.0.1"
+wireguard_port: "51820"
+wireguard_pub_address: vpn.example.com # domain or ip address
+wireguard_network_name: vpn
+wireguard_external_net: ""
+# wireguard_external_net: "10.10.0.0/24" # for one network
+# wireguard_external_net: "10.10.0.0/24, 10.12.0.0/24" # for some networks
+# wireguard_external_net: "0.0.0.0/0" # for all internet
+wireguard_snat_ip: "" # set phisical interface ip address if you need NAT from "wireguard_net_ip" 
+
+wireguard_clients: []
+# wireguard_clients:
+  # - user_name: user1
+  #   ip: "10.8.0.11"
+  # - user_name: user2
+  #   ip: "10.8.0.12"
+wireguard_dns_server: "" # dns server for clients (must be set if wireguard_external_net: "0.0.0.0/0")

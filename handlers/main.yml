@@ -1,0 +1,8 @@
+---
+- name: persist iptables
+  shell: iptables-save > /etc/iptables/rules.v4
+
+- name: restart wg-quick
+  systemd:
+    name: "wg-quick@{{ wireguard_network_name }}.service"
+    state: restarted

@@ -1,0 +1,30 @@
+---
+- name: Add wireguard PPA repository
+  apt_repository:
+    repo: ppa:wireguard/wireguard
+  when: ansible_distribution == "Ubuntu"
+
+- name: Add debian unstable repository
+  copy:
+    src: unstable.list
+    dest: /etc/apt/sources.list.d/unstable.list
+  when: ansible_distribution == "Debian"
+
+- name: Pin debian packages
+  copy:
+    src: limit-unstable
+    dest: /etc/apt/preferences.d/limit-unstable
+  when: ansible_distribution == "Debian"
+
+- name: Install wireguard
+  apt:
+    name: wireguard
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install iptables-persistent
+  apt:
+    name: iptables-persistent
+    update_cache: yes
+    cache_valid_time: 3600
+  when: wireguard_snat_ip | length > 0

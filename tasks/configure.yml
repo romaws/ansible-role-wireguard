@@ -1,0 +1,88 @@
+---
+- name: Read server private key
+  stat:
+    path: "{{ wireguard_path }}/private.key"
+  register: server_private_key
+
+- name: Generate server's keys
+  shell: "wg genkey | tee {{ wireguard_path  }}/private.key | wg pubkey > {{ wireguard_path }}/public.key"
+  when: not server_private_key.stat.exists
+
+- name: Read server private key
+  slurp:
+    src: "{{ wireguard_path }}/private.key"
+  register: server_private_key
+
+- name: Read server's public key
+  slurp:
+    src: "{{ wireguard_path }}/public.key"
+  register: server_public_key
+
+- name: Create a directory if it does not exist
+  file:
+    path: "{{ wireguard_clients_path }}/keys"
+    state: directory
+    recurse: yes
+
+- name: Read private client's key
+  stat:
+    path: "{{ wireguard_clients_path }}/keys/{{ item.user_name }}.private.key"
+  register: client_private_keys
+  loop: "{{ wireguard_clients }}"
+
+- name: Generate wireguard client's keys
+  shell: "wg genkey | tee {{ wireguard_clients_path  }}/keys/{{ item.item.user_name }}.private.key | wg pubkey > {{ wireguard_clients_path }}/keys/{{ item.item.user_name }}.public.key"
+  when: not item.stat.exists 
+  loop: "{{ client_private_keys.results }}"
+
+- name: Read private client's key
+  slurp:
+    src: "{{ wireguard_clients_path }}/keys/{{ item.user_name }}.private.key" 
+  register: client_private_keys
+  loop: "{{ wireguard_clients }}"
+
+- name: Read public client's keys
+  slurp:
+    src: "{{ wireguard_clients_path }}/keys/{{ item.user_name }}.public.key"
+  register: client_public_keys
+  loop: "{{ wireguard_clients }}"
+
+- name: Generate server config
+  template:
+    src: interface.conf.j2
+    dest: "{{ wireguard_path }}/{{ wireguard_network_name }}.conf"
+    mode: '0640'
+  notify: restart wg-quick
+
+- name: Start and enable service
+  systemd:
+    name: "wg-quick@{{ wireguard_network_name }}.service"
+    state: started
+    enabled: yes
+
+- name: Generate client's configs
+  template:
+    src: client.conf.j2
+    dest: "{{ wireguard_clients_path }}/{{ item.item.user_name }}.conf"
+    mode: '0640'
+  loop: "{{ client_private_keys.results }}"
+
+- name: ipv4.ip_forward On
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  when: wireguard_snat_ip | length > 0
+
+- name: NAT from VPN to internal network
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    source: "{{ wireguard_net_ip }}/{{ wireguard_net_mask }}"
+    jump: SNAT
+    to_source: "{{ wireguard_snat_ip }}"
+    comment: NAT from VPN to internal network
+  when: wireguard_snat_ip | length > 0
+  notify: persist iptables
