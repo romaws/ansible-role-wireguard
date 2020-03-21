@@ -7,6 +7,7 @@ DNS = {{ wireguard_dns_server }}
 ### {{ item.item.user_name }} ###
 [Peer]
 PublicKey = {{ server_public_key.content | b64decode | trim }}
-AllowedIPs = {{ wireguard_net_ip }}/{{ wireguard_net_mask }}, {{ wireguard_external_net }}
+AllowedIPs = {{ wireguard_net_ip }}/{{ wireguard_net_mask }}{% if wireguard_external_net|length %}, {{ wireguard_external_net }}{% endif %}
+
 Endpoint = {{ wireguard_pub_address }}:{{ wireguard_port }}
 PersistentKeepalive = 25

@@ -1,7 +1,7 @@
 wireguard
 =========
 
-This role installs WireGuard, configures it as a server, sets up networking (iptables), and creates client configs with keys.
+This ansible role installs WireGuard, configures it as a server, sets up networking (iptables), and creates client configs.
 
 Tested OSes:
 - Debian 10
@@ -37,7 +37,7 @@ Example Playbook
       wireguard_snat_ip: "{{ wireguard_pub_address }}"
 ```
 
-Client confings
+Client configs
 ----------------
 Client configs stored in "/etc/wireguard/clients" directory.
 To change the client configs location, change "wireguard_clients_path" variable.
